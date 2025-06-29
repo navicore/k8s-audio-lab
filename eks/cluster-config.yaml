@@ -2,7 +2,7 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: audio-lab-cluster
+  name: audio-lab-cluster-2
   region: us-east-1  # Change to your preferred region
   version: "1.31"
 
