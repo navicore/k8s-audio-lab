@@ -12,7 +12,9 @@ NC='\033[0m' # No Color
 # Configuration
 CLUSTER_NAME="audio-lab-cluster"
 REGION="${AWS_REGION:-us-east-1}"
-DOMAIN_NAME="${DOMAIN_NAME:-example.com}"
+SUBDOMAIN="${SUBDOMAIN:-audiolab}"
+BASE_DOMAIN="${BASE_DOMAIN:-example.com}"
+DOMAIN_NAME="${SUBDOMAIN}.${BASE_DOMAIN}"
 CERT_EMAIL="${CERT_EMAIL:-admin@example.com}"
 
 echo -e "${GREEN}Starting EKS cluster deployment...${NC}"
