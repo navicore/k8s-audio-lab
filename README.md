@@ -33,16 +33,19 @@ This repository contains test applications for monitoring audio latency in Kuber
 
 ### Kubernetes Deployment
 
-1. **Using Helm (recommended):**
-   ```bash
-   helm install audio-lab charts/audio-lab
-   ```
+**Using Helm (recommended):**
 
-2. **Using kubectl:**
-   ```bash
-   kubectl apply -f audio-source.yaml
-   kubectl apply -f audio-relay.yaml
-   ```
+```bash
+# Add the Helm repository
+helm repo add navicore https://www.navicore.tech/charts
+helm repo update
+
+# Install with default values
+helm install audio-lab navicore/audio-lab
+
+# Or install with your custom domain
+helm install audio-lab navicore/audio-lab --set global.domain=yourdomain.com
+```
 
 ### AWS EKS Deployment
 
@@ -63,34 +66,15 @@ Add these secrets to your GitHub repository:
 
 ## Helm Chart
 
-The Helm chart is available at `charts/audio-lab` and supports:
+The Helm chart supports:
 - Configurable resource limits
-- Ingress with TLS
+- Automatic ingress creation with `global.domain`
+- TLS support
 - Horizontal Pod Autoscaling
 - Security contexts
 - Service accounts
 
-### Chart Repository
-
-To make the chart available via GitHub Pages:
-
-1. Package the chart:
-   ```bash
-   helm package charts/audio-lab
-   ```
-
-2. Create an index:
-   ```bash
-   helm repo index . --url https://www.navicore.tech/charts
-   ```
-
-3. Commit and push to a `gh-pages` branch
-
-Users can then add your repo:
-```bash
-helm repo add navicore https://www.navicore.tech/charts
-helm install audio-lab navicore/audio-lab
-```
+The chart is available from: https://www.navicore.tech/charts/
 
 ## Architecture
 
