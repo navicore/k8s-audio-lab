@@ -14,7 +14,8 @@ audioSource:
   image:
     repository: navicore/k8s-audio-audio-source
     pullPolicy: IfNotPresent
-    tag: "latest"
+    # Defaults to chart appVersion, override with specific version
+    tag: ""
   
   service:
     type: ClusterIP
@@ -55,7 +56,8 @@ audioRelay:
   image:
     repository: navicore/k8s-audio-audio-relay
     pullPolicy: IfNotPresent
-    tag: "latest"
+    # Defaults to chart appVersion, override with specific version
+    tag: ""
   
   service:
     type: ClusterIP

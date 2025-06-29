@@ -3,9 +3,11 @@ name: Build and Push Docker Images
 on:
   push:
     branches: [ main, master ]
-    tags: [ 'v*' ]
+    tags: [ 'v*.*.*' ]  # Semantic versioning tags like v1.0.0
   pull_request:
     branches: [ main, master ]
+  release:
+    types: [ published ]
 
 env:
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
@@ -38,12 +40,20 @@ jobs:
       with:
         images: ${{ env.DOCKER_HUB_USERNAME }}/k8s-audio-${{ matrix.service }}
         tags: |
+          # Latest tag for main/master branch
           type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
+          # Branch name for branch pushes
           type=ref,event=branch
+          # PR number for pull requests
           type=ref,event=pr
+          # Version tags - creates tags like 1.0.0 from v1.0.0
           type=semver,pattern={{version}}
+          # Major.minor version - creates tags like 1.0 from v1.0.0
           type=semver,pattern={{major}}.{{minor}}
-          type=sha
+          # Major version - creates tags like 1 from v1.0.0
+          type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
+          # SHA for every commit
+          type=sha,format=short,prefix={{branch}}-
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5

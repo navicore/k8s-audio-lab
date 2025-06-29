@@ -1,0 +1,51 @@
+name: Release Helm Chart
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release-chart:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Configure Git
+      run: |
+        git config user.name "$GITHUB_ACTOR"
+        git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+    - name: Update Chart versions
+      run: |
+        # Extract version from tag (remove 'v' prefix)
+        VERSION=${GITHUB_REF_NAME#v}
+        
+        # Update Chart.yaml version and appVersion
+        sed -i "s/^version: .*/version: $VERSION/" charts/audio-lab/Chart.yaml
+        sed -i "s/^appVersion: .*/appVersion: \"$VERSION\"/" charts/audio-lab/Chart.yaml
+        
+        # Commit changes
+        git add charts/audio-lab/Chart.yaml
+        git commit -m "Update Helm chart to version $VERSION" || echo "No changes to commit"
+
+    - name: Install Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: v3.13.0
+
+    - name: Package Helm chart
+      run: |
+        helm package charts/audio-lab -d .deploy
+
+    - name: Upload chart to release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: .deploy/audio-lab-${{ github.ref_name }}.tgz
+        asset_name: audio-lab-${{ github.ref_name }}.tgz
+        asset_content_type: application/gzip
