@@ -19,6 +19,34 @@ CERT_EMAIL="${CERT_EMAIL:-admin@example.com}"
 
 echo -e "${GREEN}Starting EKS cluster deployment...${NC}"
 
+# Check required environment variables
+echo -e "${YELLOW}Checking environment variables...${NC}"
+if [ -z "$BASE_DOMAIN" ]; then
+    echo -e "${RED}ERROR: BASE_DOMAIN environment variable is not set${NC}"
+    echo -e "${RED}Please set: export BASE_DOMAIN=navicore.tech${NC}"
+    exit 1
+fi
+
+if [ -z "$CERT_EMAIL" ]; then
+    echo -e "${RED}ERROR: CERT_EMAIL environment variable is not set${NC}"
+    echo -e "${RED}Please set: export CERT_EMAIL=your-email@example.com${NC}"
+    exit 1
+fi
+
+if [ -z "$DOCKER_HUB_USERNAME" ]; then
+    echo -e "${RED}ERROR: DOCKER_HUB_USERNAME environment variable is not set${NC}"
+    echo -e "${RED}Please set: export DOCKER_HUB_USERNAME=yourusername${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}Environment variables OK:${NC}"
+echo -e "  AWS_REGION: ${REGION}"
+echo -e "  SUBDOMAIN: ${SUBDOMAIN}"
+echo -e "  BASE_DOMAIN: ${BASE_DOMAIN}"
+echo -e "  DOMAIN_NAME: ${DOMAIN_NAME}"
+echo -e "  CERT_EMAIL: ${CERT_EMAIL}"
+echo -e "  DOCKER_HUB_USERNAME: ${DOCKER_HUB_USERNAME}"
+
 # Check prerequisites
 echo -e "${YELLOW}Checking prerequisites...${NC}"
 command -v aws >/dev/null 2>&1 || { echo -e "${RED}AWS CLI is required but not installed. Aborting.${NC}" >&2; exit 1; }
