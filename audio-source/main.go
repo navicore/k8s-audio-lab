@@ -32,6 +32,7 @@ type AudioChunk struct {
 // AudioServer manages the audio loop and clients
 type AudioServer struct {
 	wavFile         string
+	availableFiles  []string
 	chunkDurationMs int
 	audioChunks     [][]byte
 	currentPosition int
@@ -46,12 +47,15 @@ type AudioServer struct {
 	listenersMux sync.RWMutex
 	
 	totalDurationMs int
+	switching       bool
+	switchMux       sync.Mutex
 }
 
 // NewAudioServer creates a new audio server instance
 func NewAudioServer(wavFile string, chunkDurationMs int) *AudioServer {
 	return &AudioServer{
 		wavFile:         wavFile,
+		availableFiles:  []string{"audio.wav", "audio-spam-1.wav", "audio-spam-2.wav", "audio-spam-3.wav"},
 		chunkDurationMs: chunkDurationMs,
 		listeners:       make(map[chan AudioChunk]bool),
 	}
@@ -269,12 +273,49 @@ func (s *AudioServer) GetState() map[string]interface{} {
 		"elapsed_ms":       elapsedMs,
 		"total_duration_ms": s.totalDurationMs,
 		"chunk_duration_ms": s.chunkDurationMs,
+		"current_file":     s.wavFile,
+		"available_files":  s.availableFiles,
 		"audio_format": map[string]int{
 			"channels":        s.channels,
 			"sample_rate":     s.sampleRate,
 			"bits_per_sample": s.sampleWidth * 8,
 		},
 	}
+}
+
+// SwitchAudio switches to a different audio file
+func (s *AudioServer) SwitchAudio(filename string) error {
+	s.switchMux.Lock()
+	defer s.switchMux.Unlock()
+	
+	// Check if file is in available list
+	found := false
+	for _, f := range s.availableFiles {
+		if f == filename {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return fmt.Errorf("file %s not available", filename)
+	}
+	
+	// Load new audio file
+	oldFile := s.wavFile
+	s.wavFile = "/app/" + filename
+	if err := s.LoadAudio(); err != nil {
+		s.wavFile = oldFile // Restore on error
+		return err
+	}
+	
+	// Reset playback state
+	s.currentPosition = 0
+	s.loopCount = 0
+	s.intervalID = uuid.New().String()
+	s.loopStartTime = time.Now()
+	
+	log.Printf("Switched to audio file: %s", filename)
+	return nil
 }
 
 var audioServer *AudioServer
@@ -297,12 +338,23 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
         .metric { margin: 8px 0; display: flex; justify-content: space-between; }
         .metric span { font-weight: bold; }
         #error { color: red; margin: 10px 0; }
+        .file-selector { margin: 20px 0; padding: 15px; background: #e3f2fd; border-radius: 5px; }
+        .file-selector select { padding: 8px; font-size: 16px; width: 100%; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🎵 Audio Loop Broadcast</h1>
         <p>This server continuously broadcasts audio in a loop. Connect anytime to join the stream!</p>
+        <div class="file-selector">
+            <label for="audioFile">Select Audio File:</label>
+            <select id="audioFile" onchange="switchAudio()">
+                <option value="audio.wav">audio.wav</option>
+                <option value="audio-spam-1.wav">audio-spam-1.wav</option>
+                <option value="audio-spam-2.wav">audio-spam-2.wav</option>
+                <option value="audio-spam-3.wav">audio-spam-3.wav</option>
+            </select>
+        </div>
         <div>
             <button class="play" onclick="startStream()">▶️ Play Stream</button>
             <button class="stop" onclick="stopStream()">⏹️ Stop</button>
@@ -310,6 +362,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
         <div id="error"></div>
         <div id="status">
             <div class="metric">Status: <span id="state">Disconnected</span></div>
+            <div class="metric">Current File: <span id="currentFile">-</span></div>
             <div class="metric">Loop Count: <span id="loop">-</span></div>
             <div class="metric">Position: <span id="position">-</span></div>
             <div class="metric">Interval ID: <span id="interval">-</span></div>
@@ -346,10 +399,18 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
                     }
                     
                     document.getElementById('state').textContent = 'Connected';
-                    document.getElementById('loop').textContent = data.loop_count;
-                    document.getElementById('position').textContent = data.position + '/' + data.total_chunks;
+                    document.getElementById('loop').textContent = data.loop_count || '-';
+                    document.getElementById('position').textContent = 
+                        data.position !== undefined ? data.position + '/' + data.total_chunks : '-';
                     document.getElementById('interval').textContent = 
                         data.interval_id ? data.interval_id.substring(0, 8) + '...' : '-';
+                    
+                    // Update current file if present
+                    if (data.current_file) {
+                        const filename = data.current_file.split('/').pop();
+                        document.getElementById('currentFile').textContent = filename;
+                        document.getElementById('audioFile').value = filename;
+                    }
                     
                     if (data.audio && isPlaying) {
                         playChunk(data);
@@ -418,6 +479,50 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
             document.getElementById('state').textContent = 'Disconnected';
             audioFormat = null;
         }
+        
+        async function switchAudio() {
+            const select = document.getElementById('audioFile');
+            const file = select.value;
+            
+            try {
+                const response = await fetch('/switch', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ file: file })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to switch audio: ' + response.statusText);
+                }
+                
+                const result = await response.json();
+                console.log('Switched to:', result.file);
+                
+                // Clear error if successful
+                document.getElementById('error').textContent = '';
+            } catch (e) {
+                document.getElementById('error').textContent = 'Error switching audio: ' + e.message;
+                console.error('Switch error:', e);
+            }
+        }
+        
+        // Load initial status on page load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('/status');
+                const data = await response.json();
+                
+                if (data.current_file) {
+                    const filename = data.current_file.split('/').pop();
+                    document.getElementById('audioFile').value = filename;
+                    document.getElementById('currentFile').textContent = filename;
+                }
+            } catch (e) {
+                console.error('Failed to load initial status:', e);
+            }
+        });
     </script>
 </body>
 </html>`
@@ -469,6 +574,34 @@ func handleStatus(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(state)
 }
 
+// handleSwitch handles audio file switching
+func handleSwitch(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	
+	var req struct {
+		File string `json:"file"`
+	}
+	
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	
+	if err := audioServer.SwitchAudio(req.File); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"status": "switched",
+		"file":   req.File,
+	})
+}
+
 func main() {
 	// Create audio server
 	audioServer = NewAudioServer("/app/audio.wav", 100) // 100ms chunks
@@ -485,6 +618,7 @@ func main() {
 	http.HandleFunc("/", handleIndex)
 	http.HandleFunc("/stream", handleStream)
 	http.HandleFunc("/status", handleStatus)
+	http.HandleFunc("/switch", handleSwitch)
 	
 	// Start HTTP server
 	log.Println("Audio source server started on :8000")
