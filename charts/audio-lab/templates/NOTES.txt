@@ -1,0 +1,45 @@
+1. Get the application URL by running these commands:
+{{- if .Values.audioSource.ingress.enabled }}
+{{- range $host := .Values.audioSource.ingress.hosts }}
+  {{- range .paths }}
+  Audio Source: http{{ if $.Values.audioSource.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.audioSource.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Values.global.namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "audio-lab.fullname" . }}-audio-source)
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Values.global.namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo Audio Source: http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.audioSource.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get --namespace {{ .Values.global.namespace }} svc -w {{ include "audio-lab.fullname" . }}-audio-source'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Values.global.namespace }} {{ include "audio-lab.fullname" . }}-audio-source --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo Audio Source: http://$SERVICE_IP:{{ .Values.audioSource.service.port }}
+{{- else if contains "ClusterIP" .Values.audioSource.service.type }}
+  kubectl --namespace {{ .Values.global.namespace }} port-forward service/audio-source 8000:{{ .Values.audioSource.service.port }}
+  echo "Audio Source: http://127.0.0.1:8000"
+{{- end }}
+
+{{- if .Values.audioRelay.ingress.enabled }}
+{{- range $host := .Values.audioRelay.ingress.hosts }}
+  {{- range .paths }}
+  Audio Relay: http{{ if $.Values.audioRelay.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.audioRelay.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Values.global.namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "audio-lab.fullname" . }}-audio-relay)
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Values.global.namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo Audio Relay: http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.audioRelay.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get --namespace {{ .Values.global.namespace }} svc -w {{ include "audio-lab.fullname" . }}-audio-relay'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Values.global.namespace }} {{ include "audio-lab.fullname" . }}-audio-relay --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo Audio Relay: http://$SERVICE_IP:{{ .Values.audioRelay.service.port }}
+{{- else if contains "ClusterIP" .Values.audioRelay.service.type }}
+  kubectl --namespace {{ .Values.global.namespace }} port-forward service/audio-relay 8001:{{ .Values.audioRelay.service.port }}
+  echo "Audio Relay: http://127.0.0.1:8001"
+{{- end }}
+
+2. The audio relay connects to the audio source at: {{ .Values.audioRelay.audioSourceUrl }}
+
+3. To monitor the services:
+   kubectl logs -n {{ .Values.global.namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}

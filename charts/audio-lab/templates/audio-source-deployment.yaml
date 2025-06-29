@@ -1,0 +1,65 @@
+{{- if .Values.audioSource.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "audio-lab.fullname" . }}-audio-source
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "audio-lab.labels" . | nindent 4 }}
+    app.kubernetes.io/component: audio-source
+spec:
+  {{- if not .Values.audioSource.autoscaling.enabled }}
+  replicas: {{ .Values.audioSource.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "audio-lab.audioSourceSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "audio-lab.audioSourceSelectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "audio-lab.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: audio-source
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.audioSource.image.repository }}:{{ .Values.audioSource.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.audioSource.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.audioSource.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.audioSource.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

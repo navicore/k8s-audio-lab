@@ -1,0 +1,22 @@
+{{- if .Values.audioRelay.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: audio-relay
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "audio-lab.labels" . | nindent 4 }}
+    app.kubernetes.io/component: audio-relay
+spec:
+  type: {{ .Values.audioRelay.service.type }}
+  ports:
+    - port: {{ .Values.audioRelay.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+      {{- if and (eq .Values.audioRelay.service.type "NodePort") .Values.audioRelay.service.nodePort }}
+      nodePort: {{ .Values.audioRelay.service.nodePort }}
+      {{- end }}
+  selector:
+    {{- include "audio-lab.audioRelaySelectorLabels" . | nindent 4 }}
+{{- end }}

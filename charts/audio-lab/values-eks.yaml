@@ -1,0 +1,50 @@
+# EKS-specific values for audio-lab with TLS enabled
+# This file overrides the default values.yaml
+
+# Audio Source Service Configuration
+audioSource:
+  service:
+    type: ClusterIP  # Use ClusterIP with Ingress for TLS
+  
+  ingress:
+    enabled: true
+    className: "alb"
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:ACCOUNT:certificate/CERT-ID"  # Replace with your ACM certificate ARN
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: '443'
+    hosts:
+      - host: audio-source.yourdomain.com  # Replace with your domain
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - hosts:
+          - audio-source.yourdomain.com
+        secretName: audio-source-tls
+
+# Audio Relay Service Configuration
+audioRelay:
+  service:
+    type: ClusterIP  # Use ClusterIP with Ingress for TLS
+  
+  ingress:
+    enabled: true
+    className: "alb"
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:ACCOUNT:certificate/CERT-ID"  # Replace with your ACM certificate ARN
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: '443'
+    hosts:
+      - host: audio-relay.yourdomain.com  # Replace with your domain
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - hosts:
+          - audio-relay.yourdomain.com
+        secretName: audio-relay-tls

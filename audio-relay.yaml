@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: audio-relay
+  namespace: audio-demo
+spec:
+  type: NodePort
+  selector:
+    app: audio-relay
+  ports:
+    - port: 8001
+      targetPort: 8001
+      nodePort: 30081
+      name: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audio-relay
+  namespace: audio-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: audio-relay
+  template:
+    metadata:
+      labels:
+        app: audio-relay
+    spec:
+      containers:
+        - name: audio-relay
+          image: audio-relay:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8001
+          env:
+            - name: AUDIO_SOURCE_URL
+              value: "http://audio-source:8000"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"

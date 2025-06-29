@@ -1,0 +1,45 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: audio-lab-cluster
+  region: us-east-1  # Change to your preferred region
+  version: "1.28"
+
+iam:
+  withOIDC: true
+
+# 2 node cluster as requested
+nodeGroups:
+  - name: ng-1
+    instanceType: t3.medium
+    desiredCapacity: 2
+    minSize: 2
+    maxSize: 4
+    volumeSize: 80
+    ssh:
+      allow: false
+    iam:
+      withAddonPolicies:
+        albIngress: true
+        awsLoadBalancerController: true
+        certManager: true
+        ebs: true
+        efs: true
+        cloudWatch: true
+
+# Enable CloudWatch logging
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["*"]
+
+# Add-ons
+addons:
+  - name: vpc-cni
+    version: latest
+  - name: coredns
+    version: latest
+  - name: kube-proxy
+    version: latest
+  - name: aws-ebs-csi-driver
+    version: latest
