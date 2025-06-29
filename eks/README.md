@@ -16,10 +16,11 @@ This directory contains scripts and configuration for deploying the audio lab ap
 Set these before running the deployment:
 
 ```bash
-export AWS_REGION=us-east-1  # Your preferred region
-export DOMAIN_NAME=yourdomain.com  # Your domain
-export CERT_EMAIL=admin@yourdomain.com  # Email for certificates
-export DOCKER_HUB_USERNAME=yourusername  # Your Docker Hub username
+export AWS_REGION=us-east-1                    # Your preferred region
+export SUBDOMAIN=audiolab                       # Subdomain to use
+export BASE_DOMAIN=navicore.tech               # Your base domain
+export CERT_EMAIL=your-email@example.com       # Email for certificate notifications
+export DOCKER_HUB_USERNAME=navicore             # Your Docker Hub username
 ```
 
 ## Deployment Steps
@@ -68,6 +69,8 @@ To tear down the entire deployment:
 ```bash
 ./destroy-eks.sh
 ```
+
+**Note**: When you recreate the cluster, the ALB DNS names will change. You'll need to update your CNAME records each time. Future enhancement: automate DNS updates with Route53 or external-dns.
 
 ## Cost Considerations
 
