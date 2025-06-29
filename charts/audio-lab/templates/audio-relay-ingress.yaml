@@ -1,4 +1,4 @@
-{{- if and .Values.audioRelay.enabled .Values.audioRelay.ingress.enabled }}
+{{- if and .Values.audioRelay.enabled (or .Values.audioRelay.ingress.enabled .Values.global.domain) }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -15,7 +15,12 @@ spec:
   {{- if .Values.audioRelay.ingress.className }}
   ingressClassName: {{ .Values.audioRelay.ingress.className }}
   {{- end }}
-  {{- if .Values.audioRelay.ingress.tls }}
+  {{- if .Values.global.domain }}
+  tls:
+    - hosts:
+        - {{ printf "audio-relay.%s" .Values.global.domain | quote }}
+      secretName: audio-relay-tls
+  {{- else if .Values.audioRelay.ingress.tls }}
   tls:
     {{- range .Values.audioRelay.ingress.tls }}
     - hosts:
@@ -26,6 +31,18 @@ spec:
     {{- end }}
   {{- end }}
   rules:
+    {{- if .Values.global.domain }}
+    - host: {{ printf "audio-relay.%s" .Values.global.domain | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: audio-relay
+                port:
+                  number: {{ .Values.audioRelay.service.port }}
+    {{- else }}
     {{- range .Values.audioRelay.ingress.hosts }}
     - host: {{ .host | quote }}
       http:
@@ -39,5 +56,6 @@ spec:
                 port:
                   number: {{ $.Values.audioRelay.service.port }}
           {{- end }}
+    {{- end }}
     {{- end }}
 {{- end }}

@@ -2,9 +2,15 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# Quick deployment with your domain (creates ingress automatically):
+# helm install audio-lab . --set global.domain=audiolab.navicore.tech
+
 # Global settings
 global:
   namespace: audio-demo
+  # Set this to your domain to enable ingress for both services
+  # Example: helm install audio-lab . --set global.domain=audiolab.navicore.tech
+  domain: ""
 
 # Audio Source Service Configuration
 audioSource:

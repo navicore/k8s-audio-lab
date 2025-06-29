@@ -13,4 +13,4 @@ sources:
   - https://github.com/navicore/k8s-audio-lab
 maintainers:
   - name: navicore
-    email: your-email@example.com
+    email: your-email@example.com  # Optional: update with your email

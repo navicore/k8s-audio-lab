@@ -1,5 +1,9 @@
 # EKS-specific values for audio-lab with TLS enabled
 # This file overrides the default values.yaml
+#
+# IMPORTANT: Replace these values before deploying:
+# 1. Replace "example.com" with your actual domain
+# 2. Replace the certificate ARN with your ACM certificate ARN
 
 # Audio Source Service Configuration
 audioSource:
@@ -16,13 +20,13 @@ audioSource:
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
       alb.ingress.kubernetes.io/ssl-redirect: '443'
     hosts:
-      - host: audio-source.yourdomain.com  # Replace with your domain
+      - host: audio-source.example.com
         paths:
           - path: /
             pathType: Prefix
     tls:
       - hosts:
-          - audio-source.yourdomain.com
+          - audio-source.example.com
         secretName: audio-source-tls
 
 # Audio Relay Service Configuration
@@ -40,11 +44,11 @@ audioRelay:
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
       alb.ingress.kubernetes.io/ssl-redirect: '443'
     hosts:
-      - host: audio-relay.yourdomain.com  # Replace with your domain
+      - host: audio-relay.example.com
         paths:
           - path: /
             pathType: Prefix
     tls:
       - hosts:
-          - audio-relay.yourdomain.com
+          - audio-relay.example.com
         secretName: audio-relay-tls
