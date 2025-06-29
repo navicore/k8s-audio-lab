@@ -21,7 +21,6 @@ nodeGroups:
       allow: false
     iam:
       withAddonPolicies:
-        albIngress: true
         awsLoadBalancerController: true
         certManager: true
         ebs: true
