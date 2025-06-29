@@ -38,11 +38,12 @@ jobs:
       with:
         images: ${{ env.DOCKER_HUB_USERNAME }}/k8s-audio-${{ matrix.service }}
         tags: |
+          type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
           type=ref,event=branch
           type=ref,event=pr
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
-          type=sha,prefix={{branch}}-
+          type=sha
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
