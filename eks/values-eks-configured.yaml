@@ -1,0 +1,42 @@
+# Auto-generated EKS values file
+audioSource:
+  image:
+    repository: navicore/k8s-audio-audio-source
+    tag: latest
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: true
+    className: "alb"
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:744536430008:certificate/d99bbcf1-dfab-4514-b9fb-455d66e31bdd"
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: '443'
+    hosts:
+      - host: audio-source.audiolab.navicore.tech
+        paths:
+          - path: /
+            pathType: Prefix
+
+audioRelay:
+  image:
+    repository: navicore/k8s-audio-audio-relay
+    tag: latest
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: true
+    className: "alb"
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:744536430008:certificate/d99bbcf1-dfab-4514-b9fb-455d66e31bdd"
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: '443'
+    hosts:
+      - host: audio-relay.audiolab.navicore.tech
+        paths:
+          - path: /
+            pathType: Prefix
