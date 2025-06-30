@@ -344,7 +344,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 </head>
 <body>
     <div class="container">
-        <h1>🎵 Audio Loop Broadcast</h1>
+        <h1>Audio Loop Broadcast</h1>
         <p>This server continuously broadcasts audio in a loop. Connect anytime to join the stream!</p>
         <div class="file-selector">
             <label for="audioFile">Select Audio File:</label>
@@ -356,8 +356,8 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
             </select>
         </div>
         <div>
-            <button class="play" onclick="startStream()">▶️ Play Stream</button>
-            <button class="stop" onclick="stopStream()">⏹️ Stop</button>
+            <button class="play" onclick="startStream()">Play Stream</button>
+            <button class="stop" onclick="stopStream()">Stop</button>
         </div>
         <div id="error"></div>
         <div id="status">

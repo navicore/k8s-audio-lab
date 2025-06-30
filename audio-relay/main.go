@@ -367,7 +367,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 </head>
 <body>
     <div class="container">
-        <h1>🔄 Audio Relay with Variable Buffer</h1>
+        <h1>Audio Relay with Variable Buffer</h1>
         
         <div class="controls">
             <h3>Latency Control</h3>
@@ -383,8 +383,8 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
         </div>
         
         <div>
-            <button class="play" onclick="startStream()">▶️ Play Stream</button>
-            <button class="stop" onclick="stopStream()">⏹️ Stop</button>
+            <button class="play" onclick="startStream()">Play Stream</button>
+            <button class="stop" onclick="stopStream()">Stop</button>
         </div>
         
         <div class="buffer-stats" id="bufferStats">
