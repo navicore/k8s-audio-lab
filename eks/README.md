@@ -1,5 +1,19 @@
 # EKS Deployment for Audio Lab
 
+--------------
+Update:
+
+```
+helm install audio-lab ../../charts/src/audio-lab -f values-eks-configured.yaml --namespace audio-lab --create-namespace
+```
+
+then `k get ingress -n audio-lab` to get the CNAME new names
+
+hint, CNAME name is the HOSTS entry and ADDRESS is the CNAME value
+
+--------------
+
+
 This directory contains scripts and configuration for deploying the audio lab application to AWS EKS with TLS support.
 
 ## Prerequisites
@@ -88,3 +102,5 @@ Estimated cost: ~$150-200/month (varies by region and usage)
 - TLS is enforced via ALB redirect rules
 - Pods run with security contexts (non-root user)
 - Network policies can be added for additional security
+
+
