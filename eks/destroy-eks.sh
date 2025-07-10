@@ -10,7 +10,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-CLUSTER_NAME="audio-lab-cluster"
+CLUSTER_NAME="audio-lab-cluster-2"
 REGION="${AWS_REGION:-us-east-1}"
 
 echo -e "${YELLOW}WARNING: This will destroy the EKS cluster and all resources!${NC}"
