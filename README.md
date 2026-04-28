@@ -1,3 +1,8 @@
+<!-- ghmig:moved -->
+> **This repository has moved to [https://git.navicore.tech/navicore/k8s-audio-lab](https://git.navicore.tech/navicore/k8s-audio-lab).**
+>
+> The GitHub copy is archived and no longer maintained.
+
 # K8s Audio Lab
 
 This repository contains test applications for monitoring audio latency in Kubernetes environments. It includes two services that can be deployed to test and monitor audio streaming performance.
